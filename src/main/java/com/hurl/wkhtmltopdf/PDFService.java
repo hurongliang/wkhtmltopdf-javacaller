@@ -98,7 +98,14 @@ public class PDFService {
 	}
 	
 	private static File findExecutableFile(){
-		URL exeURL = PDFService.class.getResource("windowswingw32bit/wkhtmltopdf.exe");
+		URL exeURL = null;
+		if(SystemUtils.IS_OS_WINDOWS){
+			if(SystemUtils.IS_OS_WINDOWS_VISTA || SystemUtils.IS_OS_WINDOWS_7){
+				exeURL = PDFService.class.getResource("windowsmsvc64bit/wkhtmltopdf.exe");
+			}else{
+				exeURL = PDFService.class.getResource("windowswingw32bit/wkhtmltopdf.exe");
+			}
+		}
 		File exeFile = null;
 		try{
 			exeFile = new File(exeURL.toURI());
