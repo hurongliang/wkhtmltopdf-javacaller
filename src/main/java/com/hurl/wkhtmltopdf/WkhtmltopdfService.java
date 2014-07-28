@@ -14,14 +14,14 @@ import org.apache.commons.lang.SystemUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class PDFService {
-	private static final Logger log = LoggerFactory.getLogger(PDFService.class);
+public class WkhtmltopdfService {
+	private static final Logger log = LoggerFactory.getLogger(WkhtmltopdfService.class);
 	
 	public static void convert(File htmlfile, File pdffile) throws IOException, InterruptedException{
 		log.debug("convert "+htmlfile+" to "+pdffile);
 		if(SystemUtils.IS_OS_WINDOWS){
 			log.debug("in windows platform");
-			PDFService.convertUnderWindowsPlatform(htmlfile, pdffile,null);
+			WkhtmltopdfService.convertUnderWindowsPlatform(htmlfile, pdffile,null);
 		}else if(SystemUtils.IS_OS_LINUX){
 			
 		}
@@ -31,7 +31,7 @@ public class PDFService {
 		log.debug("convert "+htmlfile+" to "+pdffile);
 		if(SystemUtils.IS_OS_WINDOWS){
 			log.debug("in windows platform");
-			PDFService.convertUnderWindowsPlatform(htmlfile, pdffile,header);
+			WkhtmltopdfService.convertUnderWindowsPlatform(htmlfile, pdffile,header);
 		}else if(SystemUtils.IS_OS_LINUX){
 			
 		}
@@ -101,9 +101,9 @@ public class PDFService {
 		URL exeURL = null;
 		if(SystemUtils.IS_OS_WINDOWS){
 			if(SystemUtils.IS_OS_WINDOWS_VISTA || SystemUtils.IS_OS_WINDOWS_7){
-				exeURL = PDFService.class.getResource("windowsmsvc64bit/wkhtmltopdf.exe");
+				exeURL = WkhtmltopdfService.class.getResource("windowsmsvc64bit/wkhtmltopdf.exe");
 			}else{
-				exeURL = PDFService.class.getResource("windowswingw32bit/wkhtmltopdf.exe");
+				exeURL = WkhtmltopdfService.class.getResource("windowswingw32bit/wkhtmltopdf.exe");
 			}
 		}
 		File exeFile = null;

@@ -27,7 +27,7 @@ public class PdfServiceTests {
 	public void testConvert() throws IOException, InterruptedException{
 		String htmlfile = "C:/Users/Administrator/Downloads/fcomb0001.html";
 		String pdffile = "C:/Users/Administrator/Downloads/fcomb0001.pdf";
-		PDFService.convert(new File(htmlfile), new File(pdffile));
+		WkhtmltopdfService.convert(new File(htmlfile), new File(pdffile));
 	}
 	
 	@Test
@@ -42,7 +42,7 @@ public class PdfServiceTests {
 		String htmlfile = "C:/Users/Administrator/Downloads/fcomb0001.html";
 		String pdffile = "C:/Users/Administrator/Downloads/fcomb0001.pdf";
 		
-		PDFService.convert(new File(htmlfile), new File(pdffile),header);
+		WkhtmltopdfService.convert(new File(htmlfile), new File(pdffile),header);
 	}
 	
 //	@Test
@@ -64,7 +64,7 @@ class ExeRunnable implements Runnable{
 	}
 	public void run() {
 		try {
-			PDFService.convert(new File(htmlfile), new File(pdffile));
+			WkhtmltopdfService.convert(new File(htmlfile), new File(pdffile));
 		} catch (IOException e) {
 			e.printStackTrace();
 		} catch (InterruptedException e) {
