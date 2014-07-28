@@ -18,17 +18,12 @@ public class WkhtmltopdfService {
 	private static final Logger log = LoggerFactory.getLogger(WkhtmltopdfService.class);
 	
 	public static void convert(File htmlfile, File pdffile) throws IOException, InterruptedException{
-		log.debug("convert "+htmlfile+" to "+pdffile);
-		if(SystemUtils.IS_OS_WINDOWS){
-			log.debug("in windows platform");
-			WkhtmltopdfService.convertUnderWindowsPlatform(htmlfile, pdffile,null);
-		}else if(SystemUtils.IS_OS_LINUX){
-			
-		}
+		convert(htmlfile,pdffile,null);
 	}
 	
 	public static void convert(File htmlfile, File pdffile,PageHeader header) throws IOException, InterruptedException{
 		log.debug("convert "+htmlfile+" to "+pdffile);
+		
 		if(SystemUtils.IS_OS_WINDOWS){
 			log.debug("in windows platform");
 			WkhtmltopdfService.convertUnderWindowsPlatform(htmlfile, pdffile,header);
