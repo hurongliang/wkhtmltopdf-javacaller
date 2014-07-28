@@ -5,9 +5,10 @@ import java.awt.GraphicsEnvironment;
 import java.io.File;
 import java.io.IOException;
 
+import org.testng.Assert;
 import org.testng.annotations.Test;
 
-public class PdfServiceTests {
+public class WkhtmltopdfServiceTest {
 	
 //	@Test
 	public void testConvertWithMultiThread() throws IOException, InterruptedException{
@@ -36,13 +37,16 @@ public class PdfServiceTests {
 		header.setCenterText("This is a header");
 		header.setLeftText("这是一句中文");
 		header.setRightText("This is a right header");
-		header.setFontSize(8);
+		header.setFontSize(12);
 		header.setFontName("YaHei Consolas Hybrid");
+		header.setDisplayLine(true);
+		header.setSpace(8);
 		
 		String htmlfile = "C:/Users/Administrator/Downloads/fcomb0001.html";
 		String pdffile = "C:/Users/Administrator/Downloads/fcomb0001.pdf";
 		
-		WkhtmltopdfService.convert(new File(htmlfile), new File(pdffile),header);
+		boolean success = WkhtmltopdfService.convert(new File(htmlfile), new File(pdffile),header);
+		Assert.assertEquals(success, true);
 	}
 	
 //	@Test

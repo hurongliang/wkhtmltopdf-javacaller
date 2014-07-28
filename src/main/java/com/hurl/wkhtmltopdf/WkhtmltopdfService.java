@@ -17,27 +17,30 @@ import org.slf4j.LoggerFactory;
 public class WkhtmltopdfService {
 	private static final Logger log = LoggerFactory.getLogger(WkhtmltopdfService.class);
 	
-	public static void convert(File htmlfile, File pdffile) throws IOException, InterruptedException{
-		convert(htmlfile,pdffile,null);
+	public static boolean convert(File htmlfile, File pdffile) throws IOException, InterruptedException{
+		return convert(htmlfile,pdffile,null);
 	}
 	
-	public static void convert(File htmlfile, File pdffile,PageHeader header) throws IOException, InterruptedException{
+	public static boolean convert(File htmlfile, File pdffile,PageHeader header) throws IOException, InterruptedException{
 		log.debug("convert "+htmlfile+" to "+pdffile);
 		
 		if(SystemUtils.IS_OS_WINDOWS){
 			log.debug("in windows platform");
-			WkhtmltopdfService.convertUnderWindowsPlatform(htmlfile, pdffile,header);
+			return WkhtmltopdfService.convertUnderWindowsPlatform(htmlfile, pdffile,header);
 		}else if(SystemUtils.IS_OS_LINUX){
 			
 		}
+		
+		log.debug("no suitable command tools");
+		return false;
 	}
 	
-	private static void convertUnderWindowsPlatform(File htmlfile, File pdffile,PageHeader header) throws IOException, InterruptedException{
+	private static boolean convertUnderWindowsPlatform(File htmlfile, File pdffile,PageHeader header) throws IOException, InterruptedException{
 		File execFile = findExecutableFile();
 		log.debug("Executable file "+execFile);
 		if(execFile==null || !execFile.exists()){
 			log.error("Cannot convert html to pdf: executable file "+execFile+" not exists");
-			return;
+			return false;
 		}
 		List<String> commandList = new ArrayList<String>();
 		commandList.add(execFile.getPath());
@@ -90,6 +93,7 @@ public class WkhtmltopdfService {
 		int rc = p.waitFor();
 		
 		log.debug("convert done with exit code "+rc+".");
+		return rc==0;
 	}
 	
 	private static File findExecutableFile(){
