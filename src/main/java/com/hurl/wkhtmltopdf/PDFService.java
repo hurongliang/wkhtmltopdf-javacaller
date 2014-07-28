@@ -6,7 +6,10 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.SystemUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,21 +21,65 @@ public class PDFService {
 		log.debug("convert "+htmlfile+" to "+pdffile);
 		if(SystemUtils.IS_OS_WINDOWS){
 			log.debug("in windows platform");
-			PDFService.convertUnderWindowsPlatform(htmlfile, pdffile);
+			PDFService.convertUnderWindowsPlatform(htmlfile, pdffile,null);
 		}else if(SystemUtils.IS_OS_LINUX){
 			
 		}
 	}
 	
-	private static void convertUnderWindowsPlatform(File htmlfile, File pdffile) throws IOException, InterruptedException{
+	public static void convert(File htmlfile, File pdffile,PageHeader header) throws IOException, InterruptedException{
+		log.debug("convert "+htmlfile+" to "+pdffile);
+		if(SystemUtils.IS_OS_WINDOWS){
+			log.debug("in windows platform");
+			PDFService.convertUnderWindowsPlatform(htmlfile, pdffile,header);
+		}else if(SystemUtils.IS_OS_LINUX){
+			
+		}
+	}
+	
+	private static void convertUnderWindowsPlatform(File htmlfile, File pdffile,PageHeader header) throws IOException, InterruptedException{
 		File execFile = findExecutableFile();
 		log.debug("Executable file "+execFile);
 		if(execFile==null || !execFile.exists()){
 			log.error("Cannot convert html to pdf: executable file "+execFile+" not exists");
 			return;
 		}
+		List<String> commandList = new ArrayList<String>();
+		commandList.add(execFile.getPath());
+		if(header!=null){
+			if(StringUtils.isNotBlank(header.getCenterText())){
+				commandList.add("--header-center");
+				commandList.add(header.getCenterText());
+			}
+			if(StringUtils.isNotBlank(header.getLeftText())){
+				commandList.add("--header-left");
+				commandList.add(header.getLeftText());
+			}
+			if(StringUtils.isNotBlank(header.getRightText())){
+				commandList.add("--header-right");
+				commandList.add(header.getRightText());
+			}
+			if(StringUtils.isNotBlank(header.getFontName())){
+				commandList.add("--header-font-name");
+				commandList.add(header.getFontName());
+			}
+			if(header.getFontSize()>0){
+				commandList.add("--header-font-size");
+				commandList.add(String.valueOf(header.getFontSize()));
+			}
+			if(header.isDisplayLine()){
+				commandList.add("--header-line");
+			}
+			if(header.getSpace()>0){
+				commandList.add("--header-spacing");
+				commandList.add(String.valueOf(header.getSpace()));
+			}
+		}
 		
-		ProcessBuilder pb = new ProcessBuilder(execFile.getPath(),htmlfile.getAbsolutePath(),pdffile.getAbsolutePath());
+		commandList.add(htmlfile.getAbsolutePath());
+		commandList.add(pdffile.getAbsolutePath());
+		
+		ProcessBuilder pb = new ProcessBuilder(commandList);
 		pb.redirectErrorStream(true);
 		
 		Process p = pb.start();
@@ -51,7 +98,7 @@ public class PDFService {
 	}
 	
 	private static File findExecutableFile(){
-		URL exeURL = PDFService.class.getResource("windowsmsvc64bit/wkhtmltopdf.exe");
+		URL exeURL = PDFService.class.getResource("windowswingw32bit/wkhtmltopdf.exe");
 		File exeFile = null;
 		try{
 			exeFile = new File(exeURL.toURI());
