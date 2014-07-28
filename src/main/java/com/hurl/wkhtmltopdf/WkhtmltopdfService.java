@@ -14,13 +14,35 @@ import org.apache.commons.lang.SystemUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * A service to convert html file to pdf file.
+ * @author Administrator
+ *
+ */
 public class WkhtmltopdfService {
 	private static final Logger log = LoggerFactory.getLogger(WkhtmltopdfService.class);
 	
+	/**
+	 * Convert html file to pdf file
+	 * @param htmlfile the html file to be converted.
+	 * @param pdffile the pdf file will be generated.
+	 * @return true if converting is successfully, or false if converting is failed.
+	 * @throws IOException
+	 * @throws InterruptedException
+	 */
 	public static boolean convert(File htmlfile, File pdffile) throws IOException, InterruptedException{
 		return convert(htmlfile,pdffile,null);
 	}
 	
+	/**
+	 * Convert html file to pdf file
+	 * @param htmlfile the html file to be converted.
+	 * @param pdffile the pdf file will be generated.
+	 * @return true if converting is successfully, or false if converting is failed.
+	 * @param header header information to be added to each page.
+	 * @throws IOException
+	 * @throws InterruptedException
+	 */
 	public static boolean convert(File htmlfile, File pdffile,PageHeader header) throws IOException, InterruptedException{
 		log.debug("convert "+htmlfile+" to "+pdffile);
 		
