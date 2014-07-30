@@ -58,14 +58,14 @@ public class WkhtmltopdfService {
 	}
 	
 	private static boolean convertUnderWindowsPlatform(File htmlfile, File pdffile,PageHeader header) throws IOException, InterruptedException{
-		File execFile = findExecutableFile();
-		log.debug("Executable file "+execFile);
-		if(execFile==null || !execFile.exists()){
-			log.error("Cannot convert html to pdf: executable file "+execFile+" not exists");
+		File executableFile = findExecutableFileUnderWindowsPlatform();
+		log.debug("Executable file "+executableFile);
+		if(executableFile==null || !executableFile.exists()){
+			log.error("Cannot convert html to pdf: executable file "+executableFile+" not exists");
 			return false;
 		}
 		List<String> commandList = new ArrayList<String>();
-		commandList.add(execFile.getPath());
+		commandList.add(executableFile.getPath());
 		if(header!=null){
 			if(StringUtils.isNotBlank(header.getCenterText())){
 				commandList.add("--header-center");
@@ -118,21 +118,55 @@ public class WkhtmltopdfService {
 		return rc==0;
 	}
 	
-	private static File findExecutableFile(){
-		URL exeURL = null;
-		if(SystemUtils.IS_OS_WINDOWS){
-			if(SystemUtils.IS_OS_WINDOWS_VISTA || SystemUtils.IS_OS_WINDOWS_7){
-				exeURL = WkhtmltopdfService.class.getResource("windowsmsvc64bit/wkhtmltopdf.exe");
-			}else{
-				exeURL = WkhtmltopdfService.class.getResource("windowswingw32bit/wkhtmltopdf.exe");
-			}
+	private static File findExecutableFileUnderWindowsPlatform(){
+		boolean is64bit = false;
+		String arch = System.getProperty("os.arch");
+		String archDataModel = System.getProperty("sun.arch.data.model");
+		if(StringUtils.equalsIgnoreCase(arch, "amd64") && StringUtils.equalsIgnoreCase(archDataModel, "64")){
+			is64bit = true;
 		}
+		
+		String pathFor32bit = "tools/wkhtmltopdf/win32/wkhtmltopdf.exe";
+		String pathFor64bit = "tools/wkhtmltopdf/win64/wkhtmltopdf.exe";
+		
+		log.debug("arch "+arch);
+		log.debug("arch data model "+archDataModel);
+		log.debug("is 64-bit "+is64bit);
+		log.debug("path for 32-bit "+pathFor64bit);
+		log.debug("path for 64-bit "+pathFor64bit);
+		
+		File classpath = getClasspath();
+		log.debug("classpath "+classpath);
+		
 		File exeFile = null;
-		try{
-			exeFile = new File(exeURL.toURI());
-		}catch(URISyntaxException e){
-			exeFile = new File(exeURL.getPath());
+		if(is64bit){
+			exeFile = new File(classpath,pathFor64bit);
+			if(!exeFile.exists()){//64-bit version not exists, get 32-bit version.
+				log.debug("wkhtmltopdf.exe 64-bit not exists, try to find 32-bit version");
+				exeFile = new File(classpath,pathFor32bit);
+			}
+		}else{
+			exeFile = new File(classpath,pathFor32bit);
 		}
+		
+		if(!exeFile.exists()){
+			log.warn("file "+exeFile+" not exists");
+			return null;
+		}
+		
 		return exeFile;
+	}
+	
+	private static File getClasspath(){
+		URL classpathURL = WkhtmltopdfService.class.getProtectionDomain().getCodeSource().getLocation();
+		
+		File classpath = null;
+		try{
+			classpath = new File(classpathURL.toURI());
+		}catch(URISyntaxException e){
+			classpath = new File(classpathURL.getPath());
+		}
+		
+		return classpath;
 	}
 }

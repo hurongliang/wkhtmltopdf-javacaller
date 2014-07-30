@@ -4,6 +4,9 @@ import java.awt.Font;
 import java.awt.GraphicsEnvironment;
 import java.io.File;
 import java.io.IOException;
+import java.net.URL;
+import java.security.CodeSource;
+import java.security.ProtectionDomain;
 
 import org.testng.Assert;
 import org.testng.annotations.Test;
@@ -24,14 +27,23 @@ public class WkhtmltopdfServiceTest {
 		}
 	}
 
-//	@Test
+	@Test
 	public void testConvert() throws IOException, InterruptedException{
 		String htmlfile = "C:/Users/Administrator/Downloads/fcomb0001.html";
 		String pdffile = "C:/Users/Administrator/Downloads/fcomb0001.pdf";
 		WkhtmltopdfService.convert(new File(htmlfile), new File(pdffile));
 	}
 	
-	@Test
+//	@Test
+	public void testClasspath(){
+		ProtectionDomain pd = WkhtmltopdfServiceTest.class.getProtectionDomain();
+		CodeSource cs = pd.getCodeSource();
+		URL location = cs.getLocation();
+		String path = location.getPath();
+		System.out.println(path);
+	}
+	
+//	@Test
 	public void testConvertWithHeader() throws IOException, InterruptedException{
 		PageHeader header = new PageHeader();
 		header.setCenterText("This is a header");
@@ -56,6 +68,11 @@ public class WkhtmltopdfServiceTest {
 	    for (Font f : fonts) {
 	      System.out.println(f.getFontName());
 	    }
+	}
+	
+//	@Test
+	public void printSystemProperties(){
+		System.getProperties().list(System.out);
 	}
 }
 
