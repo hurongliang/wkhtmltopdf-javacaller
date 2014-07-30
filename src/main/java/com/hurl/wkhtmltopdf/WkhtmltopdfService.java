@@ -158,7 +158,7 @@ public class WkhtmltopdfService {
 	}
 	
 	private static File getClasspath(){
-		URL classpathURL = WkhtmltopdfService.class.getProtectionDomain().getCodeSource().getLocation();
+		URL classpathURL = WkhtmltopdfService.class.getResource("/");
 		
 		File classpath = null;
 		try{
