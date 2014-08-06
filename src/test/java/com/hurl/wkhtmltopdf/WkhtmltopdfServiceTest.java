@@ -31,7 +31,7 @@ public class WkhtmltopdfServiceTest {
 	public void testConvert() throws IOException, InterruptedException{
 		String htmlfile = "C:/Users/Administrator/Downloads/fcomb0001.html";
 		String pdffile = "C:/Users/Administrator/Downloads/fcomb0001.pdf";
-		WkhtmltopdfService.convert(new File(htmlfile), new File(pdffile));
+		WkhtmltopdfService.convert(new File(htmlfile), new File(pdffile),null,null);
 	}
 	
 //	@Test
@@ -49,7 +49,7 @@ public class WkhtmltopdfServiceTest {
 		header.setCenterText("This is a header");
 		header.setLeftText("这是一句中文");
 		header.setRightText("This is a right header");
-		header.setFontSize(12);
+		header.setFontSize("12");
 		header.setFontName("YaHei Consolas Hybrid");
 		header.setDisplayLine(true);
 		header.setSpace(8);
@@ -57,7 +57,7 @@ public class WkhtmltopdfServiceTest {
 		String htmlfile = "C:/Users/Administrator/Downloads/fcomb0001.html";
 		String pdffile = "C:/Users/Administrator/Downloads/fcomb0001.pdf";
 		
-		boolean success = WkhtmltopdfService.convert(new File(htmlfile), new File(pdffile),header);
+		boolean success = WkhtmltopdfService.convert(new File(htmlfile), new File(pdffile),header,null);
 		Assert.assertEquals(success, true);
 	}
 	
@@ -85,7 +85,7 @@ class ExeRunnable implements Runnable{
 	}
 	public void run() {
 		try {
-			WkhtmltopdfService.convert(new File(htmlfile), new File(pdffile));
+			WkhtmltopdfService.convert(new File(htmlfile), new File(pdffile),null,null);
 		} catch (IOException e) {
 			e.printStackTrace();
 		} catch (InterruptedException e) {

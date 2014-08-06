@@ -1,16 +1,11 @@
 package com.hurl.wkhtmltopdf;
 
-/**
- * Page header to be added to each page
- * @author Administrator
- *
- */
 public class PageHeader {
 	private String centerText;
 	private String leftText;
 	private String rightText;
 	private String fontName;
-	private int fontSize;
+	private String fontSize;
 	private int space;
 	private boolean displayLine;
 	public String getCenterText() {
@@ -55,14 +50,14 @@ public class PageHeader {
 	public void setFontName(String fontName) {
 		this.fontName = fontName;
 	}
-	public int getFontSize() {
+	public String getFontSize() {
 		return fontSize;
 	}
 	/**
 	 * Set font size of the header text.
 	 * @param fontSize
 	 */
-	public void setFontSize(int fontSize) {
+	public void setFontSize(String fontSize) {
 		this.fontSize = fontSize;
 	}
 	

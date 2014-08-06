@@ -14,6 +14,7 @@ import org.apache.commons.lang.SystemUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+
 /**
  * A service to convert html file to pdf file.
  * @author Administrator
@@ -27,45 +28,46 @@ public class WkhtmltopdfService {
 	 * @param htmlfile the html file to be converted.
 	 * @param pdffile the pdf file will be generated.
 	 * @return true if converting is successfully, or false if converting is failed.
-	 * @throws IOException
-	 * @throws InterruptedException
-	 */
-	public static boolean convert(File htmlfile, File pdffile) throws IOException, InterruptedException{
-		return convert(htmlfile,pdffile,null);
-	}
-	
-	/**
-	 * Convert html file to pdf file
-	 * @param htmlfile the html file to be converted.
-	 * @param pdffile the pdf file will be generated.
-	 * @return true if converting is successfully, or false if converting is failed.
 	 * @param header header information to be added to each page.
 	 * @throws IOException
 	 * @throws InterruptedException
 	 */
-	public static boolean convert(File htmlfile, File pdffile,PageHeader header) throws IOException, InterruptedException{
+	public static boolean convert(File htmlfile, File pdffile,PageHeader header,PageFooter footer) throws IOException, InterruptedException{
 		log.debug("convert "+htmlfile+" to "+pdffile);
 		
 		if(SystemUtils.IS_OS_WINDOWS){
-			log.debug("in windows platform");
-			return WkhtmltopdfService.convertUnderWindowsPlatform(htmlfile, pdffile,header);
-		}else if(SystemUtils.IS_OS_LINUX){
-			
+			return convertUnderWindowsPlatform(htmlfile,pdffile,header,footer);
 		}
 		
-		log.debug("no suitable command tools");
+		if(SystemUtils.IS_OS_MAC || SystemUtils.IS_OS_MAC_OSX){
+			return convertUnderWindowsMacOSPlatform(htmlfile,pdffile,header,footer);
+		}
+		
+		log.error("Unsupported system platform");
 		return false;
 	}
 	
-	private static boolean convertUnderWindowsPlatform(File htmlfile, File pdffile,PageHeader header) throws IOException, InterruptedException{
+	private static boolean convertUnderWindowsPlatform(File htmlfile, File pdffile,PageHeader header,PageFooter footer) throws IOException, InterruptedException{
+		log.debug("convert under windows platform");
+		
 		File executableFile = findExecutableFileUnderWindowsPlatform();
-		log.debug("Executable file "+executableFile);
-		if(executableFile==null || !executableFile.exists()){
-			log.error("Cannot convert html to pdf: executable file "+executableFile+" not exists");
+		
+		if(executableFile==null){
+			log.error("Cannot convert html to pdf: no suitable command tools");
 			return false;
 		}
+		
+		if(!executableFile.exists()){
+			log.error("Cannot convert html to pdf: command tools "+executableFile+" not exists");
+			return false;
+		}
+
+		return WkhtmltopdfService.executeCommand(executableFile, htmlfile, pdffile, header,footer);
+	}
+	
+	private static boolean executeCommand(File executableFile, File htmlfile, File pdffile,PageHeader header,PageFooter footer) throws IOException, InterruptedException{
 		List<String> commandList = new ArrayList<String>();
-		commandList.add(executableFile.getPath());
+		commandList.add(executableFile.getAbsolutePath());
 		if(header!=null){
 			if(StringUtils.isNotBlank(header.getCenterText())){
 				commandList.add("--header-center");
@@ -83,7 +85,7 @@ public class WkhtmltopdfService {
 				commandList.add("--header-font-name");
 				commandList.add(header.getFontName());
 			}
-			if(header.getFontSize()>0){
+			if(StringUtils.isNotBlank(header.getFontSize())){
 				commandList.add("--header-font-size");
 				commandList.add(String.valueOf(header.getFontSize()));
 			}
@@ -95,7 +97,35 @@ public class WkhtmltopdfService {
 				commandList.add(String.valueOf(header.getSpace()));
 			}
 		}
-		
+		if(footer!=null){
+			if(StringUtils.isNotBlank(footer.getCenterText())){
+				commandList.add("--footer-center");
+				commandList.add(footer.getCenterText());
+			}
+			if(StringUtils.isNotBlank(footer.getLeftText())){
+				commandList.add("--footer-left");
+				commandList.add(footer.getLeftText());
+			}
+			if(StringUtils.isNotBlank(footer.getRightText())){
+				commandList.add("--footer-right");
+				commandList.add(footer.getRightText());
+			}
+			if(StringUtils.isNotBlank(footer.getFontName())){
+				commandList.add("--footer-font-name");
+				commandList.add(footer.getFontName());
+			}
+			if(StringUtils.isNotBlank(footer.getFontName())){
+				commandList.add("--footer-font-size");
+				commandList.add(String.valueOf(footer.getFontSize()));
+			}
+			if(footer.isDisplayLine()){
+				commandList.add("--footer-line");
+			}
+			if(footer.getSpace()>0){
+				commandList.add("--footer-spacing");
+				commandList.add(String.valueOf(footer.getSpace()));
+			}
+		}
 		commandList.add(htmlfile.getAbsolutePath());
 		commandList.add(pdffile.getAbsolutePath());
 		
@@ -119,42 +149,120 @@ public class WkhtmltopdfService {
 	}
 	
 	private static File findExecutableFileUnderWindowsPlatform(){
-		boolean is64bit = false;
-		String arch = System.getProperty("os.arch");
-		String archDataModel = System.getProperty("sun.arch.data.model");
-		if(StringUtils.equalsIgnoreCase(arch, "amd64") && StringUtils.equalsIgnoreCase(archDataModel, "64")){
-			is64bit = true;
-		}
+		File rootDirectory = findRootDirectoryForTools();
 		
-		String pathFor32bit = "tools/wkhtmltopdf/win32/wkhtmltopdf.exe";
-		String pathFor64bit = "tools/wkhtmltopdf/win64/wkhtmltopdf.exe";
-		
-		log.debug("arch "+arch);
-		log.debug("arch data model "+archDataModel);
-		log.debug("is 64-bit "+is64bit);
-		log.debug("path for 32-bit "+pathFor64bit);
-		log.debug("path for 64-bit "+pathFor64bit);
-		
-		File classpath = getClasspath();
-		log.debug("classpath "+classpath);
-		
-		File exeFile = null;
-		if(is64bit){
-			exeFile = new File(classpath,pathFor64bit);
-			if(!exeFile.exists()){//64-bit version not exists, get 32-bit version.
-				log.debug("wkhtmltopdf.exe 64-bit not exists, try to find 32-bit version");
-				exeFile = new File(classpath,pathFor32bit);
-			}
-		}else{
-			exeFile = new File(classpath,pathFor32bit);
-		}
-		
-		if(!exeFile.exists()){
-			log.warn("file "+exeFile+" not exists");
+		if(rootDirectory==null){
 			return null;
 		}
 		
-		return exeFile;
+		File execFile32bit = new File(rootDirectory,"win32"+File.separator+"wkhtmltopdf.exe");
+		File execFile64bit = new File(rootDirectory,"win64"+File.separator+"wkhtmltopdf.exe");
+		
+		boolean is64bit = is64bitArchitecture();
+		
+		log.debug("is 64-bit arch "+is64bit);
+		
+		if(is64bit && execFile64bit.exists()){
+			log.debug("find executable file under windows os 64 bit: "+execFile64bit);
+			return execFile64bit;
+		}else{
+			if(execFile32bit.exists()){
+				log.debug("find executable file under windows os 32 bit: "+execFile32bit);
+				return execFile32bit;
+			}else{
+				log.debug("executable file under windows os not exists");
+				return null;
+			}
+		}
+	}
+	
+	private static boolean is64bitArchitecture(){
+		boolean is64bit = false;
+		
+		String arch = System.getProperty("os.arch");
+		String archDataModel = System.getProperty("sun.arch.data.model");
+		
+		boolean isarch64bit = StringUtils.equalsIgnoreCase(arch, "amd64") || StringUtils.equalsIgnoreCase(arch, "x86_64");
+		boolean isdatamodel64bit = StringUtils.equalsIgnoreCase(archDataModel, "64");
+		
+		if(isarch64bit && isdatamodel64bit){
+			is64bit = true;
+		}
+		
+		return is64bit;
+	}
+	
+	private static boolean convertUnderWindowsMacOSPlatform(File htmlfile, File pdffile,PageHeader header,PageFooter footer) throws IOException, InterruptedException{
+		log.debug("convert under mac os");
+		
+		File jnalibrary = findJNALibrary();
+		if(jnalibrary==null){
+			log.error("Cannot find jna library path");
+			return false;
+		}
+		
+		String key = "jna.library.path";
+		String jnalibrarypathbefore = System.getProperty(key);
+		
+		System.setProperty(key, jnalibrary.getAbsolutePath());
+		int code;
+		
+		boolean headerenable = header!=null;
+		String headerlefttext = header!=null?header.getLeftText():null;
+		String headercentertext = header!=null?header.getCenterText():null;
+		String headerrighttext = header!=null?header.getRightText():null;
+		String headerfontname = header!=null?header.getFontName():null;
+		String headerfontsize = header!=null?header.getFontSize():null;
+		
+		boolean footerenable = footer!=null;
+		String footerlefttext = footer!=null?footer.getLeftText():null;
+		String footercentertext = footer!=null?footer.getCenterText():null;
+		String footerrighttext = footer!=null?footer.getRightText():null;
+		String footerfontname = footer!=null?footer.getFontName():null;
+		String footerfontsize = footer!=null?footer.getFontSize():null;
+		
+		code = WkhtmltopdfcallLibrary.INSTANCE.htmltopdfcallwithheader(htmlfile.getAbsolutePath(), pdffile.getAbsolutePath(), headerenable, headerlefttext, headercentertext, headerrighttext, headerfontname, headerfontsize, footerenable, footerlefttext, footercentertext, footerrighttext, footerfontname, footerfontsize);
+		
+		log.debug("convert result code "+code);
+		
+		System.setProperty(key, jnalibrarypathbefore);
+		
+		return code==0;
+	}
+	
+	private static File findJNALibrary(){
+		File rootDirectory = findRootDirectoryForTools();
+		
+		if(rootDirectory==null){
+			return null;
+		}
+		
+		File jnalibrary = new File(rootDirectory,"macos");
+		
+		if(!jnalibrary.exists()){
+			log.debug("executable file "+jnalibrary+" not exists");
+			return null;
+		}
+		
+		log.debug("jna library path: "+jnalibrary);
+		return jnalibrary;
+	}
+	
+	/** utilities */
+	
+	private static File findRootDirectoryForTools(){
+		File classpath = getClasspath();
+		
+		File rootDirectory = new File(classpath.getParent(),"tools"+File.separator+"wkhtmltopdf");
+		
+		if(!rootDirectory.exists()){
+			log.warn("tools root directory "+rootDirectory+" not exists");
+			return null;
+		}
+		
+		log.debug("root directory for tools "+rootDirectory);
+		
+		return rootDirectory;
 	}
 	
 	private static File getClasspath(){
